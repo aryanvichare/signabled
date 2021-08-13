@@ -1,11 +1,59 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { Document, Page } from "react-pdf";
 import { PlayIcon, DocumentTextIcon } from "@heroicons/react/outline";
 import LanguageDropdown from "@/components/LanguageDropdown";
 import axios from "axios";
-import { transcript } from "data/transcript";
 import TextLoadingSkeleton from "@/components/TextLoadingSkeleton";
+
+const voiceURIsToLanguageCode = {
+  en: "Alex",
+  ar: "Maged",
+  zh: "Ting-Ting",
+  es: "Juan",
+  in: "Veena",
+  fr: "Amelie",
+};
+
+const SummaryButton = ({ language, summary }) => {
+  const synthRef = useRef(window.speechSynthesis);
+  const [speaking, setSpeaking] = useState(false);
+  const [selectedVoice, setSelectedVoice] = useState(null);
+
+  useEffect(() => {
+    const selectedVoice = synthRef.current
+      .getVoices()
+      .filter(
+        (voice) => voice.voiceURI === voiceURIsToLanguageCode[language.code]
+      )[0];
+
+    console.log(selectedVoice);
+    setSelectedVoice(selectedVoice);
+  }, [language]);
+
+  const utter = () => {
+    if (synthRef.current.speaking) {
+      synthRef.current.cancel();
+      setSpeaking(false);
+      return;
+    }
+
+    const utterThis = new SpeechSynthesisUtterance(summary);
+
+    utterThis.voice = selectedVoice;
+    synthRef.current.speak(utterThis);
+    setSpeaking(true);
+  };
+
+  return (
+    <button
+      onClick={utter}
+      className='inline-flex rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none text-white font-bold px-6 py-2 focus:ring ring-blue-600 ring-offset-2'>
+      <PlayIcon className='w-6 h-6 mr-1 mt-[1px]' />
+      {speaking ? "Cancel" : "Listen"}
+    </button>
+  );
+};
 
 export default function Home() {
   const [language, setLanguage] = useState({
@@ -15,14 +63,29 @@ export default function Home() {
   });
 
   const [outputLoading, setOutputLoading] = useState(false);
-  const [englishTranscript, setEnglishTranscript] = useState(transcript);
-  const [episodeTranscript, setEpisodeTranscript] = useState(transcript);
+  const [englishTranscript, setEnglishTranscript] = useState(null);
+  const [episodeTranscript, setEpisodeTranscript] = useState(null);
   const [numPages, setNumPages] = useState(null);
   const [pageNumber, setPageNumber] = useState(1);
 
   function onDocumentLoadSuccess({ numPages }) {
     setNumPages(numPages);
   }
+
+  useEffect(() => {
+    setOutputLoading(true);
+
+    axios.get("/api/parse-pdf").then(async (response) => {
+      const {
+        data: { summary },
+      } = response.data;
+
+      setEnglishTranscript(summary);
+      setEpisodeTranscript(summary);
+    });
+
+    setOutputLoading(false);
+  }, []);
 
   useEffect(() => {
     if (language.code === "en") {
@@ -68,14 +131,14 @@ export default function Home() {
 
               <div className='absolute top-0 -right-12'>
                 <div className='flex items-start flex-row space-x-4'>
-                  <button className='inline-flex items-center px-6 py-2 bg-blue-600 rounded-sm text-white font-medium border-none focus:outline-none hover:bg-blue-700 shadow-lg text-sm focus:ring ring-blue-600 ring-offset-2'>
-                    <PlayIcon className='w-6 h-6 mr-1' />
+                  <button className='inline-flex rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none text-white font-bold px-6 py-2 focus:ring ring-blue-600 ring-offset-2'>
+                    <PlayIcon className='w-6 h-6 mr-1 mt-[1px]' />
                     Listen
                   </button>
-                  <button className='inline-flex items-center px-6 py-2 bg-green-600 rounded-sm text-white font-medium border-none focus:outline-none hover:bg-green-700 shadow-lg text-sm focus:ring ring-green-600 ring-offset-2'>
+                  {/* <button className='inline-flex items-center px-6 py-2 bg-green-600 rounded-sm text-white font-medium border-none focus:outline-none hover:bg-green-700 shadow-lg text-sm focus:ring ring-green-600 ring-offset-2'>
                     <DocumentTextIcon className='w-6 h-6 mr-1' />
                     Summarize
-                  </button>
+                  </button> */}
                 </div>
               </div>
             </div>
@@ -87,15 +150,23 @@ export default function Home() {
               </h1>
               <LanguageDropdown selected={language} setSelected={setLanguage} />
             </div>
-            {outputLoading ? (
+            {outputLoading || !episodeTranscript ? (
               <TextLoadingSkeleton />
             ) : (
-              <textarea
-                readOnly
-                value={episodeTranscript}
-                className='flex items-center justify-center rounded-lg w-full h-96 border-4 border-blue-600 focus:border-blue-700 focus:outline-none pb-2 px-4 text-md text-base leading-relaxed text-gray-700'
-                type='text'
-              />
+              <div className='relative'>
+                <textarea
+                  readOnly
+                  value={episodeTranscript}
+                  className='flex items-center justify-center rounded-lg w-full h-96 border-4 border-blue-600 focus:border-blue-700 focus:outline-none py-2 px-4 text-md text-base leading-relaxed text-gray-700'
+                  type='text'
+                />
+                <div className='absolute bottom-0 right-0 m-4'>
+                  <SummaryButton
+                    language={language}
+                    summary={episodeTranscript}
+                  />
+                </div>
+              </div>
             )}
 
             <div className='mt-4 ring-offset-4 inline-flex items-center text-base text-gray-600 font-md font-medium'>

@@ -54,7 +54,7 @@ const LanguageDropdown = ({ selected, setSelected }) => {
             leave='transition ease-in duration-100'
             leaveFrom='opacity-100'
             leaveTo='opacity-0'>
-            <Listbox.Options className='absolute w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
+            <Listbox.Options className='z-20 absolute w-full py-1 mt-1 overflow-auto text-base bg-white rounded-md max-h-60 ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm'>
               {languages.map((language, idx) => (
                 <Listbox.Option
                   key={idx}
