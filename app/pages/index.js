@@ -1,17 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { Document, Page } from "react-pdf";
-import { PlayIcon, DocumentTextIcon } from "@heroicons/react/outline";
+import { PlayIcon } from "@heroicons/react/outline";
 import LanguageDropdown from "@/components/LanguageDropdown";
 import axios from "axios";
 import TextLoadingSkeleton from "@/components/TextLoadingSkeleton";
+import AudioRecorder from "@/components/AudioRecorder";
 
 const voiceURIsToLanguageCode = {
   en: "Alex",
   ar: "Maged",
   zh: "Ting-Ting",
   es: "Juan",
-  in: "Veena",
+  hi: "Lekha",
   fr: "Amelie",
 };
 
@@ -182,10 +183,12 @@ export default function Home() {
                 </div>
               </div>
             )}
-
             <div className='mt-4 ring-offset-4 inline-flex items-center text-base text-gray-600 font-md font-medium'>
               Waiver Document for the{" "}
               <img className='h-4 ml-2' src='./aapd.png' alt='AAPD' />
+            </div>
+            <div className='mt-12'>
+              <AudioRecorder />
             </div>
           </div>
         </div>
