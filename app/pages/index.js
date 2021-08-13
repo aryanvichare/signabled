@@ -15,7 +15,7 @@ const voiceURIsToLanguageCode = {
   fr: "Amelie",
 };
 
-const SummaryButton = ({ language, summary }) => {
+const SummaryButton = ({ languageCode, summary }) => {
   const synthRef = useRef(window.speechSynthesis);
   const [speaking, setSpeaking] = useState(false);
   const [selectedVoice, setSelectedVoice] = useState(null);
@@ -24,12 +24,11 @@ const SummaryButton = ({ language, summary }) => {
     const selectedVoice = synthRef.current
       .getVoices()
       .filter(
-        (voice) => voice.voiceURI === voiceURIsToLanguageCode[language.code]
+        (voice) => voice.voiceURI === voiceURIsToLanguageCode[languageCode]
       )[0];
 
-    console.log(selectedVoice);
     setSelectedVoice(selectedVoice);
-  }, [language]);
+  }, [languageCode]);
 
   const utter = () => {
     if (synthRef.current.speaking) {
@@ -63,6 +62,7 @@ export default function Home() {
   });
 
   const [outputLoading, setOutputLoading] = useState(false);
+  const [rawText, setRawText] = useState(null);
   const [englishTranscript, setEnglishTranscript] = useState(null);
   const [episodeTranscript, setEpisodeTranscript] = useState(null);
   const [numPages, setNumPages] = useState(null);
@@ -85,6 +85,21 @@ export default function Home() {
     });
 
     setOutputLoading(false);
+  }, []);
+
+  useEffect(() => {
+    console.log("started");
+    axios
+      .post("/api/proxy?proxyRoute=pdf2text", {
+        url: "https://firebasestorage.googleapis.com/v0/b/house-site-bbb7a.appspot.com/o/World_Wide_Corp_lorem.pdf?alt=media&token=815a4a1c-33ae-44dd-abed-a3395b05504f",
+      })
+      .then(async (response) => {
+        const { text } = response.data;
+        setRawText(text);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }, []);
 
   useEffect(() => {
@@ -131,10 +146,9 @@ export default function Home() {
 
               <div className='absolute top-0 -right-12'>
                 <div className='flex items-start flex-row space-x-4'>
-                  <button className='inline-flex rounded-full bg-blue-600 hover:bg-blue-700 focus:outline-none text-white font-bold px-6 py-2 focus:ring ring-blue-600 ring-offset-2'>
-                    <PlayIcon className='w-6 h-6 mr-1 mt-[1px]' />
-                    Listen
-                  </button>
+                  {rawText && (
+                    <SummaryButton summary={rawText} languageCode='en' />
+                  )}
                   {/* <button className='inline-flex items-center px-6 py-2 bg-green-600 rounded-sm text-white font-medium border-none focus:outline-none hover:bg-green-700 shadow-lg text-sm focus:ring ring-green-600 ring-offset-2'>
                     <DocumentTextIcon className='w-6 h-6 mr-1' />
                     Summarize
@@ -162,7 +176,7 @@ export default function Home() {
                 />
                 <div className='absolute bottom-0 right-0 m-4'>
                   <SummaryButton
-                    language={language}
+                    languageCode={language.code}
                     summary={episodeTranscript}
                   />
                 </div>
