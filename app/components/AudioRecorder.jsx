@@ -16,7 +16,7 @@ const AudioRecorder = () => {
     fd.append("file", recordedBlob.blob);
 
     axios
-      .post("http://41352fc471fa.ngrok.io/vsigverify", fd, {
+      .post("https://41352fc471fa.ngrok.io/vsigverify", fd, {
         headers: {
           "Content-Type": "multipart/form-data",
           enctype: "multipart/form-data",
