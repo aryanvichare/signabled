@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Head from "next/head";
 import { Document, Page } from "react-pdf";
-import { PlayIcon } from "@heroicons/react/outline";
+import { PlayIcon, CheckCircleIcon } from "@heroicons/react/outline";
 import LanguageDropdown from "@/components/LanguageDropdown";
 import axios from "axios";
 import TextLoadingSkeleton from "@/components/TextLoadingSkeleton";
@@ -73,6 +73,10 @@ export default function Home() {
     setNumPages(numPages);
   }
 
+  function changePage(offset) {
+    setPageNumber((prevPageNumber) => prevPageNumber + offset);
+  }
+
   useEffect(() => {
     setOutputLoading(true);
 
@@ -80,6 +84,8 @@ export default function Home() {
       const {
         data: { summary },
       } = response.data;
+
+      console.log(summary);
 
       setEnglishTranscript(summary);
       setEpisodeTranscript(summary);
@@ -137,6 +143,10 @@ export default function Home() {
             <h1 className='text-left text-3xl text-blue-800 font-bold mb-4'>
               PDF Preview
             </h1>
+            {/* <div className='w-full flex space-x-4'>
+              <button onClick={() => changePage(-1)}>Back</button>
+              <button onClick={() => changePage(1)}>Next</button>
+            </div> */}
             <div className='relative'>
               <Document
                 file='./example.pdf'

@@ -1,11 +1,13 @@
 import React, { useState, useRef } from "react";
 import AudioReactRecorder, { RecordState } from "audio-react-recorder";
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/outline";
 import axios from "axios";
 
 const AudioRecorder = () => {
   const wrapperRef = useRef();
   const audioRef = useRef();
   const [record, setRecord] = useState(false);
+  const [success, setSuccess] = useState(null);
 
   const onStop = (recordedBlob) => {
     console.log(recordedBlob);
@@ -21,7 +23,13 @@ const AudioRecorder = () => {
         },
       })
       .then(async (res) => {
+        const { result } = res.data;
         console.log(res.data);
+        if (result) {
+          setSuccess(true);
+        } else {
+          setSuccess(false);
+        }
       });
   };
 
@@ -29,9 +37,22 @@ const AudioRecorder = () => {
 
   return (
     <div ref={wrapperRef}>
-      <h1 className='text-left text-3xl text-blue-800 font-bold mb-4'>
-        Voice Signature
-      </h1>
+      <div className='flex items-center'>
+        <h1 className='text-left text-3xl text-blue-800 font-bold mb-4'>
+          Voice Signature
+        </h1>
+        {success ? (
+          <span className='ml-4 font-bold text-green-500 mb-2'>
+            <CheckCircleIcon className='inline-block w-6 h-6 mb-[3px] mr-1 text-green-500' />
+            Voice Signature Verified.
+          </span>
+        ) : (
+          <span className='ml-4 font-bold text-red-500 mb-2'>
+            <XCircleIcon className='inline-block w-6 h-6 mb-[3px] mr-1 text-red-500' />
+            Voice Signature Not Verified.
+          </span>
+        )}
+      </div>
       <AudioReactRecorder
         ref={audioRef}
         state={record}

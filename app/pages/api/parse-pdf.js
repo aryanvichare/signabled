@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   formData.append(
     "file",
     fs.createReadStream(
-      "/Users/aryan/Downloads/Signable-node.js/app/public/example.pdf"
+      "/Users/aryan/Downloads/Signable-node.js/app/public/example2.pdf"
     )
   );
 
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
       params: {
         key: process.env.SUMMARIZE_API_KEY,
         url: "https://firebasestorage.googleapis.com/v0/b/house-site-bbb7a.appspot.com/o/World_Wide_Corp_lorem.pdf?alt=media&token=815a4a1c-33ae-44dd-abed-a3395b05504f",
-        sentences: "5",
+        sentences: "7",
       },
       headers: {
         "cache-control": "no-cache",
